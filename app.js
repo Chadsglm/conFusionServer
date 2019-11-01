@@ -1,8 +1,9 @@
-const createError = require('http-errors');
 const express = require('express');
+const createError = require('http-errors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+require('dotenv').config()
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -10,7 +11,25 @@ const dishRouter = require('./routes/dishRouter');
 const promoRouter = require('./routes/promoRouter');
 const leaderRouter = require('./routes/leaderRouter');
 
-const app = express();
+const mongoose = require('mongoose');
+mongoose.Promise = require('bluebird');
+
+const Dishes = require('./models/dishes');
+
+const url = 
+  "mongodb+srv://Chad:"
+  + process.env.API_KEY + 
+  "@confusionserver-4nr3k.mongodb.net/test";
+  
+const connect = mongoose.connect(url, {
+  useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true
+});
+
+connect.then(() => {
+  console.log("*****Connected correctly to server*****");
+}, (err) => { console.log(`DB Connection Error: ${err.message}`); });
+
+var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
