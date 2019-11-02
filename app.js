@@ -16,12 +16,12 @@ mongoose.Promise = require('bluebird');
 
 const Dishes = require('./models/dishes');
 
-const url = 
+const URL = 
   "mongodb+srv://Chad:"
   + process.env.API_KEY + 
   "@confusionserver-4nr3k.mongodb.net/test";
-  
-const connect = mongoose.connect(url, {
+
+const connect = mongoose.connect(URL, {
   useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true
 });
 
@@ -39,6 +39,33 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+const auth = (req, res, next) => {
+  console.log(req.headers);
+  let authHeader = req.headers.authorization;
+  if (!authHeader) {
+    let err = new Error('You are not authenticated!');
+    res.setHeader('WWW-Authenticate', 'Basic');
+    err.status = 401;
+    next(err);
+    return;
+  }
+
+  let auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
+  let user = auth[0];
+  let pass = auth[1];
+  if (user == 'admin' && pass == 'password') {
+    next(); // authorized
+  } else {
+    let err = new Error('You are not authenticated!');
+    res.setHeader('WWW-Authenticate', 'Basic');      
+    err.status = 401;
+    next(err);
+  }
+}
+
+app.use(auth);
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
